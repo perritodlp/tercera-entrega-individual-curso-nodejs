@@ -1,0 +1,35 @@
+{{>header}}
+
+        <h1>Lista de cursos</h1>
+
+        {{alertMessageHelper response}}
+
+        <table class="table">
+            <thead class="thead-dark">
+                <tr>
+                <th scope="col">Id</th>
+                <th scope="col">Nombre</th>
+                <th scope="col">Descripción</th>
+                <th scope="col">Valor</th>
+                <th scope="col">Modalidad</th>
+                <th scope="col">Intensidad</th>
+                <th scope="col">Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                {{#each courses}}
+                    <tr>
+                        <th scope="row">{{this.courseId}}</th>
+                        <td>{{this.name}}</td>
+                        <td>{{this.description}}</td>
+                        <td>{{this.cost}}</td>
+                        <td>{{this.modality}}</td>
+                        <td>{{this.hourlyIntensity}}</td>
+                        <td>{{this.status}}</td>
+                    </tr>                
+                {{/each}}                
+            </tbody>
+        </table>
+
+{{>footer}} 

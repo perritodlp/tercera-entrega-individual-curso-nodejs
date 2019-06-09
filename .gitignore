@@ -1,0 +1,4 @@
+node_modules/*
+src/courses.json
+.jshintrc
+src/test.js
