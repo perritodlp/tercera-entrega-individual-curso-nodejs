@@ -77,9 +77,60 @@ app.post('/saveCourse', [
 
 app.get('/listCourses', (req, res) => {
     courses = funciones.coursesList();
+    availableCourses = funciones.availableCoursesList();
     res.render('listCourses', {
-        courses: courses
+        courses: courses,
+        availableCourses: availableCourses
     });
+});
+
+app.get('/enroll', (req, res) => {
+    availableCourses = funciones.availableCoursesList();
+    res.render('enrollCourse', {
+        availableCourses: availableCourses
+    });
+});
+
+app.post('/enrollStudent', [
+    check('name').not().isEmpty().withMessage('Debe ingresar el nombre completo'),
+    check('courseId').not().isEmpty().withMessage('Debe ingresar el curso'),
+    check('phone').not().isEmpty().withMessage('Debe de ingresar el teléfono').isDecimal().withMessage('El teléfono debe ser numérico'),
+    check('email').not().isEmpty().isEmail().normalizeEmail().withMessage('Debe de ingresar el correo electrónico'),
+    check('identificationNumber').not().isEmpty().withMessage('Debe de ingresar el número de identificación').isDecimal().withMessage('El número de identificación debe ser numérico'),
+  ],function (req, res) {
+    availableCourses = funciones.availableCoursesList();  
+    const errors = validationResult(req);
+    let err = '';
+
+    if (!errors.isEmpty()) {
+        err = JSON.stringify(errors.array());
+        response = null;
+
+        res.render('enrollCourse', {
+            response: response,
+            errors: err,
+            availableCourses: availableCourses
+        });         
+    } else {
+
+        let student = {
+            courseId: parseInt(req.body.courseId),
+            name: req.body.name,
+            phone: req.body.phone, 
+            email: req.body.email,
+            identificationNumber: req.body.identificationNumber
+        };
+
+        funciones.enrollStudent(student).then((response) => {
+            console.log('3rd then, after calling enrollStudent: ' + response);
+
+            res.render('enrollCourse', {
+                response: response,
+                errors: err,
+                availableCourses: availableCourses
+            });            
+        });
+    }
 });
 
 app.get('*', (req, res) => {

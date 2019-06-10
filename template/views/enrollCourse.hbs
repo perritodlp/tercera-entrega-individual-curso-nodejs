@@ -1,0 +1,46 @@
+{{>header}}
+
+        <h1>Formulario para inscribirse en un curso</h1>
+        <p class="lead">Utilice este formulario, para inscribirse en un curso curso</p>
+
+        {{alertMessageHelper response}}
+
+        <div id="error-group">{{errorsMessageHelper errors}}</div>
+
+        <form action="/enrollStudent" method="POST">
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="identificationNumber">Documento de identidad</label>
+                    <input type="number" class="form-control" id="identificationNumber" name="identificationNumber" placeholder="Número de identificador">
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="email">Correo electrónico</label>
+                    <input type="text" class="form-control" id="email" name="email" placeholder="Correo electrónico">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="name">Nombre</label>
+                    <input type="text" class="form-control" id="name" name="name" placeholder="Nombre del estudiante">
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="phone">Teléfono</label>
+                    <input type="text" class="form-control" id="phone" name="phone" placeholder="Teléfono">
+                </div>
+            </div>            
+            <div class="form-row">
+                <div class="form-group col-md-12">
+                    <label for="courseId">Cursos disponibles</label>
+                    <select class="form-control" name="courseId" id="courseId">
+                        <option value=""></option>
+                         {{#each availableCourses}}
+                            <option value="{{this.courseId}}">{{this.name}}</option>
+                        {{/each}}
+                    </select>
+                </div>
+            </div>   
+
+            <button class="btn btn-lg btn-primary" id="enrollStudentSave-btn" role="button">Inscribirse</button>
+        </form>
+
+{{>footer}}  
