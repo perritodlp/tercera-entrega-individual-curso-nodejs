@@ -77,7 +77,6 @@ app.post('/saveCourse', [
 
 app.get('/listCourses', (req, res) => {
     courses = funciones.coursesList();
-
     res.render('listCourses', {
         courses: courses
     });

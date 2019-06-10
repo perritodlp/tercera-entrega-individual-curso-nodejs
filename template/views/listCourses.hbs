@@ -1,6 +1,6 @@
 {{>header}}
 
-        <h1>Lista de cursos</h1>
+        <h1>Ver cursos como administrador</h1>
 
         {{alertMessageHelper response}}
 
@@ -31,5 +31,37 @@
                 {{/each}}                
             </tbody>
         </table>
+
+        <hr>
+
+        <h1>Ver cursos como interesado</h1>
+
+        <div id="accordion">
+            {{#each courses}}
+
+                {{#ifCond this.status 'Disponible'}}
+                    <div class="card">
+                        <div class="card-header" id="heading{{this.courseId}}">
+                        <h5 class="mb-0">
+                            <button class="btn btn-lg btn-primary" data-toggle="collapse" data-target="#collapse{{this.courseId}}" aria-expanded="{{#ifCond @index 0}}true{{else}}false{{/ifCond}}" aria-controls="collapse{{this.courseId}}">
+                                Nombre del curso: {{this.name}}, Descripción: {{this.description}}, Costo: {{this.cost}}  » 
+                            </button>
+                        </h5>
+                        </div>
+
+                        <div id="collapse{{this.courseId}}" class="collapse {{#ifCond @index 0}}show{{else}} {{/ifCond}}" aria-labelledby="heading{{this.courseId}}" data-parent="#accordion">
+                        <div class="card-body">
+                            <p>Nombre: {{this.name}}</p>
+                            <p>Costo: {{this.cost}}</p>
+                            <p>Descripción: {{this.description}}</p>
+                            <p>Intensidad: {{this.hourlyIntensity}}</p>
+                            <p>Modalidad: {{this.modality}}</p>
+                            <p>Estado: {{this.status}}</p>
+                        </div>
+                        </div>
+                    </div>
+                {{/ifCond}}
+            {{/each}}
+        </div>        
 
 {{>footer}} 
