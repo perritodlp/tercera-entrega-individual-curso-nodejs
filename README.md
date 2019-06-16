@@ -25,7 +25,7 @@ Historias de usuario de la primera a la quinta
 # Ejecutar en la consola el siguiente comando
 nodemon -e js,hbs src/app
 ```
-## :yum: Visualización
+### :yum: Visualización
 ```bash
 # Abrir una ventana o pestaña de navegador, abrir la siguiente dirección y probar
 http://localhost:3002/
