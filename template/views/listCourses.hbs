@@ -4,16 +4,18 @@
 
         {{alertMessageHelper response}}
 
+        <div id="error-group">{{errorsMessageHelper errors}}</div>
+
         <table class="table">
             <thead class="thead-dark">
                 <tr>
-                <th scope="col">Id</th>
-                <th scope="col">Nombre</th>
-                <th scope="col">Descripción</th>
-                <th scope="col">Valor</th>
-                <th scope="col">Modalidad</th>
-                <th scope="col">Intensidad</th>
-                <th scope="col">Estado</th>
+                    <th scope="col">Id</th>
+                    <th scope="col">Nombre</th>
+                    <th scope="col">Descripción</th>
+                    <th scope="col">Valor</th>
+                    <th scope="col">Modalidad</th>
+                    <th scope="col">Intensidad</th>
+                    <th scope="col">Estado</th>
                 </tr>
             </thead>
             <tbody>
@@ -33,6 +35,26 @@
         </table>
 
         <hr>
+
+        <h1>Actualizar el estado de un curso</h1>
+
+        <form action="/changeCourseState" method="POST">
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="courseId">Cursos disponibles</label>
+                    <select class="form-control" name="courseId" id="courseId">
+                        <option value="">Seleccione un curso</option>
+                        {{#each availableCourses}}
+                            <option value="{{this.courseId}}">{{this.name}}</option>
+                        {{/each}} 
+                    </select>
+                </div>
+            </div>   
+
+            <button class="btn btn-lg btn-primary" id="changeCourseState-btn" role="button">Actualizar curso</button>
+        </form>   
+
+        <hr>     
 
         <h1>Ver cursos como interesado</h1>
 

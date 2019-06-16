@@ -1,0 +1,47 @@
+{{>header}}
+
+        <h1>Ver cursos disponibles como administrador</h1>
+
+        {{alertMessageHelper response}}
+
+        <div id="accordion">
+            {{#each availableCourses as | availableCourse |}}
+                <div class="card">
+                    <div class="card-header" id="heading{{availableCourse.courseId}}">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h5 class="mb-0">
+                                    <button class="btn btn-lg btn-primary" data-toggle="collapse" data-target="#collapse{{availableCourse.courseId}}" aria-expanded="{{#ifCond @index 0}}true{{else}}false{{/ifCond}}" aria-controls="collapse{{availableCourse.courseId}}">
+                                        Nombre del curso: {{availableCourse.name}}  » 
+                                    </button>
+                                </h5>
+                            </div>
+                            <div class="col-md-4">
+                                {{enrolledStudentsByCourseCounterHelper ../enrolledStudents availableCourse.courseId}}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="collapse{{availableCourse.courseId}}" class="collapse {{#ifCond @index 0}}show{{else}} {{/ifCond}}" aria-labelledby="heading{{availableCourse.courseId}}" data-parent="#accordion">
+                        <div class="card-body">
+                            <table class="table">
+                                <thead class="thead-dark">
+                                    <tr>
+                                        <th scope="col">Documento</th>
+                                        <th scope="col">Nombre</th>
+                                        <th scope="col">e-mail</th>
+                                        <th scope="col">Teléfono</th>
+                                        <th scope="col">Eliminar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{enrolledStudentsByCourseHelper ../enrolledStudents availableCourse.courseId}}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            {{/each}}
+        </div>        
+
+{{>footer}} 

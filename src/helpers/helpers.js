@@ -44,3 +44,38 @@ hbs.registerHelper('ifCond', function(v1, v2, options) {
   }
   return options.inverse(this);
 });
+
+hbs.registerHelper('enrolledStudentsByCourseCounterHelper', (enrolledStudents, courseId) => { 
+    let data = '';
+
+    enrolledStudentsByCourse = enrolledStudents.filter(student => student.courseId === courseId);
+
+    data += "<p class=\"text-right\">" + enrolledStudentsByCourse.length + ' ' + ((enrolledStudentsByCourse.length == 1 ) ? "estudiante inscrito": "estudiantes inscritos" ) + "</p>";
+
+    return new hbs.SafeString(data); 
+});
+
+hbs.registerHelper('enrolledStudentsByCourseHelper', (enrolledStudents, courseId) => {
+    let row_data = '';
+
+    enrolledStudentsByCourse = enrolledStudents.filter(student => student.courseId === courseId);
+
+    if( enrolledStudentsByCourse.length ) {
+
+        for (var i = 0; i < enrolledStudentsByCourse.length; i++) {
+            row_data += "<tr>";
+            row_data += "    <th scope=\"row\">" + enrolledStudentsByCourse[i].identificationNumber + "</th>";
+            row_data += "    <td>" + enrolledStudentsByCourse[i].name + "</td>";
+            row_data += "    <td>" + enrolledStudentsByCourse[i].email + "</td>";
+            row_data += "    <td>" + enrolledStudentsByCourse[i].phone + "</td>";
+            row_data += "    <td><a href=\"/deleteStudentFromCourse/" + enrolledStudentsByCourse[i].identificationNumber + "/" + enrolledStudentsByCourse[i].courseId + "\">Eliminar</a></td>";
+            row_data += "</tr>";   
+        }     
+    } else {
+        row_data += "<tr>";
+        row_data += "    <td colspan=\"5\">No existen estudiantes matriculados en este curso</td>";
+        row_data += "</tr>";         
+    }
+
+    return new hbs.SafeString(row_data);
+});

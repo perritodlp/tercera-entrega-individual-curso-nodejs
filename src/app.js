@@ -62,14 +62,15 @@ app.post('/saveCourse', [
         };
 
         funciones.saveCourse(course).then((response) => {
-            console.log('3rd then, after calling saveCourse: ' + response);
+            //console.log('3rd then, after calling saveCourse: ' + response);
 
             let redirect = JSON.parse(response).redirect;
 
             res.render(redirect, {
                 response: response,
                 errors: err,
-                courses: courses
+                courses: courses,
+                availableCourses: availableCourses
             });            
         });
     }
@@ -122,7 +123,7 @@ app.post('/enrollStudent', [
         };
 
         funciones.enrollStudent(student).then((response) => {
-            console.log('3rd then, after calling enrollStudent: ' + response);
+            //console.log('3rd then, after calling enrollStudent: ' + response);
 
             res.render('enrollCourse', {
                 response: response,
@@ -131,6 +132,70 @@ app.post('/enrollStudent', [
             });            
         });
     }
+});
+
+app.get('/viewEnrolled', (req, res) => {
+    availableCourses = funciones.availableCoursesList();
+    enrolledStudents = funciones.enrolledStudentsList();
+    
+    res.render('viewEnrolled', {
+        availableCourses: availableCourses,
+        enrolledStudents: enrolledStudents
+    });
+});
+
+app.post('/changeCourseState', [
+    check('courseId').not().isEmpty().withMessage('Debe seleccionar un curso para actualizar'),
+  ],function (req, res) {
+    courseId = req.body.courseId;  
+
+    availableCourses = funciones.availableCoursesList();
+    courses = funciones.coursesList();
+
+    const errors = validationResult(req);
+    let err = '';
+
+    if (!errors.isEmpty()) {
+        err = JSON.stringify(errors.array());
+        response = null;
+
+        res.render('listCourses', {
+            response: response,
+            errors: err,
+            courses: courses,
+            availableCourses: availableCourses
+        });        
+      
+    } else {
+        funciones.changeCourseStatus(availableCourses, courseId, 'Cerrado').then((response) => {
+            //console.log('3rd then, after calling changeCourseStatus: ' + response);
+
+            res.render('listCourses', {
+                response: response,
+                errors: err,
+                courses: courses,
+                availableCourses: availableCourses
+            });            
+        });
+    }    
+});
+
+app.get('/deleteStudentFromCourse/:studentId/:courseId', (req, res) => {
+    studentId = req.params.studentId;
+    courseId = req.params.courseId;  
+
+    let err = '';
+
+    funciones.deleteStudentFromCourse(studentId, courseId).then((response) => {
+        //console.log('3rd then, after calling deleteStudentFromCourse: ' + response);
+
+        res.render('viewEnrolled', {
+            response: response,
+            errors: err,
+            availableCourses: funciones.availableCoursesList(),
+            enrolledStudents: funciones.enrolledStudentsList()
+        });            
+    });
 });
 
 app.get('*', (req, res) => {
