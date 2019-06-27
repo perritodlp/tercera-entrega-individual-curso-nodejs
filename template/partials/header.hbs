@@ -6,12 +6,26 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <!--Bootstrap css -->
     <link rel="stylesheet" href="/css/bootstrap.min.css"  type="text/css">
-    <title>Segunda entrega individual</title> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css" type="text/css">
+    <title>Segunda entrega individual</title>
     <style>
         /* Show it is fixed to the top */
         body {
             padding-top: 4.5rem;
-        }        
+        }  
+        .mb-0 > a {
+            display: block;
+            position: relative;
+        }
+        .mb-0 > a:after {
+            content: "\f078"; /* fa-chevron-down */
+            font-family: 'FontAwesome';
+            position: absolute;
+            right: 0;
+        }
+        .mb-0 > a[aria-expanded="true"]:after {
+            content: "\f077"; /* fa-chevron-up */
+        }              
     </style>
 </head>
 <body> 
@@ -26,27 +40,39 @@
           <li class="nav-item active">
             <a class="nav-link" href="/">Inicio <span class="sr-only">(current)</span></a>
           </li>
+          {{#if user}}
+            {{#ifCond user.userType 'Coordinador'}}
           <li class="nav-item">
             <a class="nav-link" href="/createCourse">Crear curso</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/listCourses">Ver cursos</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/enroll">Inscribir</a>
-          </li>
-          <li class="nav-item">
             <a class="nav-link" href="/viewEnrolled">Ver inscritos</a>
           </li>
+            {{/ifCond}} 
+          {{/if}}
+          {{#if user}}         
+          <li class="nav-item">
+            <a class="nav-link" href="/listCourses">Ver cursos</a>
+          </li>
+          {{/if}}
         </ul>
 
         <ul class="navbar-nav text-right">
-          <li class="nav-item text-right">
-            <a class="nav-link" href="/#sesion">Iniciar sesión</a>              
-          </li>
-          <li class="nav-item text-right">
-            <a class="nav-link" href="/#registration">Registro</a>              
-          </li>          
+          {{#if user}}
+            <li class="nav-item text-right">
+                <span class="nav-link">{{user.name}}</span>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/logout/{{user.identificationNumber}}">Cerrar sesión</a>
+            </li>            
+          {{else}}  
+            <li class="nav-item text-right">
+                <a class="nav-link" href="/login">Iniciar sesión</a>              
+            </li>
+            <li class="nav-item text-right">
+                <a class="nav-link" href="/signup">Registro</a>              
+            </li> 
+          {{/if}}         
         </ul>
       </div>
     </nav>   

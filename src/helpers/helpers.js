@@ -50,7 +50,7 @@ hbs.registerHelper('enrolledStudentsByCourseCounterHelper', (enrolledStudents, c
 
     enrolledStudentsByCourse = enrolledStudents.filter(student => student.courseId === courseId);
 
-    data += "<p class=\"text-right\">" + enrolledStudentsByCourse.length + ' ' + ((enrolledStudentsByCourse.length == 1 ) ? "estudiante inscrito": "estudiantes inscritos" ) + "</p>";
+    data += "&nbsp;&nbsp;&nbsp;&nbsp;<span class=\"text-right\">" + enrolledStudentsByCourse.length + ' ' + ((enrolledStudentsByCourse.length == 1 ) ? "estudiante inscrito": "estudiantes inscritos" ) + "</span>";
 
     return new hbs.SafeString(data); 
 });

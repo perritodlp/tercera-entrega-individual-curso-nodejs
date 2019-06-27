@@ -24,11 +24,17 @@ app.set('views', path.join(__dirname, '../template/views'));
 app.set('view engine', 'hbs');
 
 app.get('/', (req, res) => {
-    res.render('index');
+    const user = funciones.userSessionList()[0];
+
+    res.render('index', {
+        user: (user) ? user : null
+    });
 });
 
 app.get('/createCourse', (req, res) => {
-    res.render('createCourse');
+    res.render('createCourse',{
+        user: funciones.userSessionList()[0]
+    });
 });
 
 app.post('/saveCourse', [
@@ -79,9 +85,12 @@ app.post('/saveCourse', [
 app.get('/listCourses', (req, res) => {
     courses = funciones.coursesList();
     availableCourses = funciones.availableCoursesList();
+    userSession = funciones.userSessionList()[0];
+
     res.render('listCourses', {
         courses: courses,
-        availableCourses: availableCourses
+        availableCourses: availableCourses,
+        user: userSession
     });
 });
 
@@ -90,6 +99,48 @@ app.get('/enroll', (req, res) => {
     res.render('enrollCourse', {
         availableCourses: availableCourses
     });
+});
+
+app.get('/enrollStudent/:courseId/:identificationNumber', [
+    check('courseId').not().isEmpty().withMessage('Debe ingresar el identificador del curso'),
+    check('identificationNumber').not().isEmpty().withMessage('Debe de ingresar el número de identificación').isDecimal().withMessage('El número de identificación debe ser numérico')
+], function (req, res) {
+    availableCourses = funciones.availableCoursesList();  
+    const errors = validationResult(req);
+    let err = '';
+
+    if (!errors.isEmpty()) {
+        err = JSON.stringify(errors.array());
+        response = null;
+
+        res.render('listCourses', {
+            response: response,
+            errors: err,
+            availableCourses: availableCourses
+        });         
+    } else {
+        
+        studentFounded = funciones.getUser(req.params.identificationNumber);
+
+        let student = {
+            courseId: parseInt(req.params.courseId),
+            name: studentFounded.user.name,
+            phone: studentFounded.user.phone, 
+            email: studentFounded.user.email,
+            identificationNumber: studentFounded.user.identificationNumber
+        };        
+
+        funciones.enrollStudent(student).then((response) => {
+            //console.log('3rd then, after calling enrollStudent: ' + response);
+
+            res.render('listCourses', {
+                response: response,
+                errors: err,
+                availableCourses: availableCourses,
+                user: funciones.userSessionList()[0]
+            });            
+        });
+    }    
 });
 
 app.post('/enrollStudent', [
@@ -137,10 +188,12 @@ app.post('/enrollStudent', [
 app.get('/viewEnrolled', (req, res) => {
     availableCourses = funciones.availableCoursesList();
     enrolledStudents = funciones.enrolledStudentsList();
+    user = funciones.userSessionList()[0];
     
     res.render('viewEnrolled', {
         availableCourses: availableCourses,
-        enrolledStudents: enrolledStudents
+        enrolledStudents: enrolledStudents,
+        user: user
     });
 });
 
@@ -195,6 +248,106 @@ app.get('/deleteStudentFromCourse/:studentId/:courseId', (req, res) => {
             availableCourses: funciones.availableCoursesList(),
             enrolledStudents: funciones.enrolledStudentsList()
         });            
+    });
+});
+
+app.get('/signup', (req, res) => {
+    res.render('register');
+});
+
+app.post('/signup', [
+    check('name').not().isEmpty().withMessage('Debe ingresar el nombre completo'),
+    check('identificationNumber').not().isEmpty().withMessage('Debe ingresar el número de identificación'),
+    check('phone').not().isEmpty().withMessage('Debe de ingresar el teléfono'),
+    check('email').not().isEmpty().withMessage('Debe de ingresar correo electrónico'),
+  ],function (req, res) {
+
+    const errors = validationResult(req);
+    let err = '';
+
+    if (!errors.isEmpty()) {
+        err = JSON.stringify(errors.array());
+        response = null;
+
+        res.render('register', {
+            response: response,
+            errors: err,
+            req: req
+        });         
+    } else {
+
+        let user = {
+            identificationNumber: parseInt(req.body.identificationNumber),
+            name: req.body.name,
+            phone: req.body.phone, 
+            email: req.body.email,
+            userType: req.body.userType 
+        };
+
+        funciones.saveUser(user).then((response) => {
+            console.log('3rd then, after calling saveUser: ' + response);
+
+            let redirect = JSON.parse(response).redirect;
+
+            res.render(redirect, {
+                response: response,
+                errors: err,
+                courses: courses,
+                availableCourses: availableCourses
+            });            
+        });
+    }
+});
+
+app.get('/login', (req, res) => {
+    res.render('login');
+});
+
+app.post('/login', [
+    check('username').not().isEmpty().withMessage('Debe ingresar el número de identificación como nombre de usuario'),
+    check('password').not().isEmpty().withMessage('Debe de ingresar la contraseña'),
+  ],function (req, res) {
+
+    const errors = validationResult(req);
+    let err = '';
+
+    if (!errors.isEmpty()) {
+        err = JSON.stringify(errors.array());
+        response = null;
+
+        res.render('login', {
+            response: response,
+            errors: err,
+            req: req
+        });         
+    } else {
+
+        funciones.loginUser(req.body.username, req.body.password).then((response) => {
+            console.log('3rd then, after calling loginUser: ' + response);
+
+            let redirect = JSON.parse(response).redirect;
+            let err = JSON.parse(response).error;
+
+            res.render(redirect, {
+                response: response.message,
+                errors: err,
+                courses: funciones.coursesList(),
+                availableCourses: funciones.availableCoursesList(),
+                user: JSON.parse(response).user
+            });
+        });
+    }
+});
+
+app.get('/logout/:identificationNumber', (req, res) => {
+    identificationNumber = req.params.identificationNumber;
+
+    funciones.logout(identificationNumber).then((response) => {
+        console.log('3rd then, after calling logout: ' + response);
+
+        res.render('index',{
+            user: null
+        });         
     });
 });
 

@@ -2,68 +2,12 @@
 
     <h1 class="text-center">Virtual EduCali</h1>
     <p class="lead text-center">Ingreso a la plataforma.</p>
-    <p>&nbsp;</p>
 
-    <div class="row">
-        <div class="col-md-3">&nbsp;</div>
-        <div class="col-md-6">
-            <ul class="nav nav-tabs" id="myTab" role="tablist">
-                <li class="nav-item">
-                    <a class="nav-link active" id="sesion-tab" data-toggle="tab" href="#sesion" role="tab" aria-controls="sesion" aria-selected="true">Iniciar sesión</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" id="registration-tab" data-toggle="tab" href="#registration" role="tab" aria-controls="registration" aria-selected="false">Registro</a>
-                </li>
-            </ul>
-            <p>&nbsp;</p>
-            <div class="tab-content" id="myTabContent">
-                <div class="tab-pane fade show active" id="sesion" role="tabpanel" aria-labelledby="sesion-tab">
-                    <form action="/login" method="POST">
-                        <div class="form-row">
-                            <div class="form-group col-md-12">
-                                <label for="username">Documento de identidad</label>
-                                <input type="text" class="form-control" id="username" name="username" placeholder="Usuario o Email">
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group col-md-12">
-                                <label for="password">Contraseña</label>
-                                <input type="password" class="form-control" id="password" name="password" placeholder="Contraseña">
-                            </div>
-                        </div>            
-
-                        <button class="btn btn-lg btn-primary" id="register-btn" role="button">Iniciar sesión</button> 
-                    </form>
-                </div>
-                <div class="tab-pane fade" id="registration" role="tabpanel" aria-labelledby="registration-tab">
-                    <form action="/register" method="POST">
-                        <div class="form-row">
-                            <div class="form-group col-md-6">
-                                <label for="identificationNumber">Documento de identidad</label>
-                                <input type="number" class="form-control" id="identificationNumber" name="identificationNumber" placeholder="Número de identificador">
-                            </div>
-                            <div class="form-group col-md-6">
-                                <label for="name">Nombre</label>
-                                <input type="text" class="form-control" id="name" name="name" placeholder="Nombre">
-                            </div>
-                        </div>            
-                        <div class="form-row">
-                            <div class="form-group col-md-6">
-                                <label for="email">Correo electrónico</label>
-                                <input type="text" class="form-control" id="email" name="email" placeholder="Correo electrónico">
-                            </div>
-                            <div class="form-group col-md-6">
-                                <label for="phone">Teléfono</label>
-                                <input type="number" class="form-control" id="phone" name="phone" placeholder="Teléfono">
-                            </div>
-                        </div>
-
-                        <button class="btn btn-lg btn-primary" id="register-btn" role="button">Registrarse</button>             
-                    </form>            
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">&nbsp;</div>
-    </div>
+    {{#ifCond user null}}
+    <p class="text-center">
+        <a class="btn btn-lg btn-primary" href="/login" role="button">Iniciar sesión »</a>
+        <a class="btn btn-lg btn-primary" href="/signup" role="button">Registro »</a>
+    </p>
+    {{/ifCond}}
 
 {{>footer}}    

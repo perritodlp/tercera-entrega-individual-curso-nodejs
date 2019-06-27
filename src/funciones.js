@@ -6,6 +6,10 @@ courses = [];
 availableCourses = [];
 enrolledStudents = [];
 enrolledStudentsByCourse = [];
+users = [];
+userSession = [];
+
+const DEFAULT_USER_TYPE = 'Aspirante';
 
 const saveCourse = async (course) => {
     let message;
@@ -220,7 +224,7 @@ const deleteStudentFromCourse = (studentId, courseId) => {
     let courseName = courseData.name;    
 
     // Buscamos si el estudiante ya se encuentra matriculado en un curso, usando el número de identificación y el identificador del curso y lo borramos   
-    enrolledStudents = enrolledStudents.filter(student => student.courseId !== courseId && student.identificationNumber !== studentId);
+    enrolledStudents = enrolledStudents.filter(student => student.courseId != courseId && student.identificationNumber != studentId);
 
     if(enrolledStudents){
 
@@ -248,6 +252,212 @@ const deleteStudentFromCourse = (studentId, courseId) => {
     return JSON.stringify(response);
 };
 
+const usersList = () => {
+    try {
+        //delete require.cache[require.resolve('./users.json')]
+
+        users = require('./users.json');
+    } catch(error) {
+        users = [];
+    }
+
+    return users;
+};
+
+const createUser = (userName, action = 'creado') => {
+    let data = JSON.stringify(users);
+
+    return new Promise(function(resolve, reject) {
+        fs.writeFile('./src/users.json', data, (err) => {
+            if( err ) reject(err);
+            resolve("El usuario " + userName + " " + action + " con éxito");
+        });
+    });    
+};
+
+const saveUser = async (user) => {
+    let message;
+    let error = false;  
+
+    usersList();
+
+    let usr = {
+        name: user.name,
+        email: user.email,
+        identificationNumber: user.identificationNumber,
+        phone: user.phone,
+        userType: DEFAULT_USER_TYPE
+    };
+
+    let duplicado = users.find(id => id.identificationNumber == user.identificationNumber);
+
+    if(!duplicado){
+        users.push(usr);
+
+        return createUser(user.identificationNumber).then((message) => {
+            console.log('1st then, inside saveUser(): ' + message);
+
+            let response = {
+                error: error,
+                message: message,
+                redirect: 'listCourses'
+            };
+
+            return JSON.stringify(response);
+        });        
+
+    } else {
+        error = true;
+        message = 'Ya existe otro usuario con ese identificador';
+    }
+
+    let response = {
+        error: error,
+        message: message,
+        redirect: 'register'
+    };
+
+    return JSON.stringify(response);
+};
+
+const userSessionList = () => {
+    try {
+        delete require.cache[require.resolve('./userSession.json')]
+
+        userSession = require('./userSession.json');
+    } catch(error) {
+        userSession = [];
+    }
+
+    return userSession;
+};
+
+/*
+*
+*
+*/
+const createSession = (user, name, action = 'creada') => {
+    let data = JSON.stringify(user);
+
+    return new Promise(function(resolve, reject) {
+        fs.writeFile('./src/userSession.json', data, (err) => {
+            if( err ) reject(err);
+            resolve("Sesión de " + name + " " + action + " con éxito");
+        });
+    });    
+};
+
+const loginUser = (userName, password) => {
+    let message;
+    let error = false;  
+    let redirect = '';
+    let userData;
+
+    usersList();
+
+    let userExists = users.find(user => (user.identificationNumber == userName && user.identificationNumber == password));
+
+    if(userExists){
+        redirect = 'listCourses';
+        userData = userExists;
+
+        userSessionList();
+
+        userSession.push(userData);
+
+        return createSession(userSession, userData.name).then((message) => {
+            console.log('1st then, inside createSession(): ' + message);
+
+            let response = {
+                error: false,
+                message: message,
+                redirect: 'listCourses',
+                user: userData
+            };
+
+            return JSON.stringify(response);
+        });    
+
+    } else {
+        error = true;
+        message = 'El usuario no existe o contraseña incorrecta';
+        redirect = 'login';
+        userData = null;
+    }
+
+    let response = {
+        error: error,
+        message: message,
+        redirect: redirect,
+        user: userData
+    };
+
+    return JSON.stringify(response);
+};
+
+const getUser = (identificationNumber) => {
+    let message;
+    let error = false;
+    let userData;
+
+    usersList();
+
+    let userExists = users.find(user => (user.identificationNumber == identificationNumber));
+    console.log(userExists);
+
+    if(userExists){
+        userData = userExists;
+    } else {
+        error = true;
+        message = 'El usuario no existe';
+        userData = null;
+    }
+
+    let response = {
+        error: error,
+        message: message,
+        user: userData
+    };
+
+    return response;
+};
+
+const logout = (identificationNumber) => {
+    let message = '';
+    let error = false;  
+
+    userSessionList();
+
+    let userExists = userSession.find(user => (user.identificationNumber == identificationNumber));
+
+    // Buscamos si el usuario estaba en sesión, usando el número de identificación y lo borramos   
+    logoutUser = userSession.filter(user => (user.identificationNumber != identificationNumber));
+
+    if(logoutUser){
+        return createSession(logoutUser, userExists.name, 'cerrada').then((message) => {
+            console.log('1st then, inside logout(): ' + message);
+
+            let response = {
+                error: error,
+                message: message
+            };
+
+            return JSON.stringify(response);
+        });        
+
+    } else {
+        error = true;
+        message = 'Error cerrando sesión del usuario ' + logoutUser.name;
+    }
+
+    let response = {
+        error: error,
+        message: message
+    };
+
+    return JSON.stringify(response);
+};
+
 module.exports = {
     saveCourse,
     coursesList,
@@ -256,5 +466,12 @@ module.exports = {
     enrollStudent,
     enrolledStudentsList,
     changeCourseStatus,
-    deleteStudentFromCourse
+    deleteStudentFromCourse,
+    usersList,
+    createUser,
+    saveUser,
+    loginUser,
+    getUser,
+    userSessionList,
+    logout
 }

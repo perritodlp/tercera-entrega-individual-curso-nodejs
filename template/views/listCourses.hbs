@@ -1,86 +1,96 @@
 {{>header}}
 
-        <h1>Ver cursos como administrador</h1>
+        {{#if response}}
+            {{alertMessageHelper response}}
+        {{/if}}    
 
-        {{alertMessageHelper response}}
+        {{#if errors}}
+            <div id="error-group">{{errorsMessageHelper errors}}</div>
+        {{/if}}    
 
-        <div id="error-group">{{errorsMessageHelper errors}}</div>
+        {{#ifCond user.userType 'Coordinador'}}
+            <h1>Ver cursos como administrador</h1>
 
-        <table class="table">
-            <thead class="thead-dark">
-                <tr>
-                    <th scope="col">Id</th>
-                    <th scope="col">Nombre</th>
-                    <th scope="col">Descripción</th>
-                    <th scope="col">Valor</th>
-                    <th scope="col">Modalidad</th>
-                    <th scope="col">Intensidad</th>
-                    <th scope="col">Estado</th>
-                </tr>
-            </thead>
-            <tbody>
-
-                {{#each courses}}
+            <table class="table">
+                <thead class="thead-dark">
                     <tr>
-                        <th scope="row">{{this.courseId}}</th>
-                        <td>{{this.name}}</td>
-                        <td>{{this.description}}</td>
-                        <td>{{this.cost}}</td>
-                        <td>{{this.modality}}</td>
-                        <td>{{this.hourlyIntensity}}</td>
-                        <td>{{this.status}}</td>
-                    </tr>                
-                {{/each}}                
-            </tbody>
-        </table>
+                        <th scope="col">Id</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Descripción</th>
+                        <th scope="col">Valor</th>
+                        <th scope="col">Modalidad</th>
+                        <th scope="col">Intensidad</th>
+                        <th scope="col">Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
 
-        <hr>
+                    {{#each courses}}
+                        <tr>
+                            <th scope="row">{{this.courseId}}</th>
+                            <td>{{this.name}}</td>
+                            <td>{{this.description}}</td>
+                            <td>{{this.cost}}</td>
+                            <td>{{this.modality}}</td>
+                            <td>{{this.hourlyIntensity}}</td>
+                            <td>{{this.status}}</td>
+                        </tr>                
+                    {{/each}}                
+                </tbody>
+            </table>
 
-        <h1>Actualizar el estado de un curso</h1>
+            <hr>
 
-        <form action="/changeCourseState" method="POST">
-            <div class="form-row">
-                <div class="form-group col-md-6">
-                    <label for="courseId">Cursos disponibles</label>
-                    <select class="form-control" name="courseId" id="courseId">
-                        <option value="">Seleccione un curso</option>
-                        {{#each availableCourses}}
-                            <option value="{{this.courseId}}">{{this.name}}</option>
-                        {{/each}} 
-                    </select>
-                </div>
-            </div>   
+            <h1>Actualizar el estado de un curso</h1>
 
-            <button class="btn btn-lg btn-primary" id="changeCourseState-btn" role="button">Actualizar curso</button>
-        </form>   
-
-        <hr>     
-
-        <h1>Ver cursos como interesado</h1>
-
-        <div id="accordion">
-            {{#each availableCourses}}
-                <div class="card">
-                    <div class="card-header" id="heading{{this.courseId}}">
-                    <h5 class="mb-0">
-                        <button class="btn btn-lg btn-primary" data-toggle="collapse" data-target="#collapse{{this.courseId}}" aria-expanded="{{#ifCond @index 0}}true{{else}}false{{/ifCond}}" aria-controls="collapse{{this.courseId}}">
-                            Nombre del curso: {{this.name}}, Descripción: {{this.description}}, Costo: {{this.cost}}  » 
-                        </button>
-                    </h5>
+            <form action="/changeCourseState" method="POST">
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="courseId">Cursos disponibles</label>
+                        <select class="form-control" name="courseId" id="courseId">
+                            <option value="">Seleccione un curso</option>
+                            {{#each availableCourses}}
+                                <option value="{{this.courseId}}">{{this.name}}</option>
+                            {{/each}} 
+                        </select>
                     </div>
+                </div>   
 
-                    <div id="collapse{{this.courseId}}" class="collapse {{#ifCond @index 0}}show{{else}} {{/ifCond}}" aria-labelledby="heading{{this.courseId}}" data-parent="#accordion">
-                    <div class="card-body">
-                        <p>Nombre: {{this.name}}</p>
-                        <p>Costo: {{this.cost}}</p>
-                        <p>Descripción: {{this.description}}</p>
-                        <p>Intensidad: {{this.hourlyIntensity}}</p>
-                        <p>Modalidad: {{this.modality}}</p>
-                        <p>Estado: {{this.status}}</p>
+                <button class="btn btn-lg btn-primary" id="changeCourseState-btn" role="button">Actualizar curso</button>
+            </form> 
+
+        <hr>            
+        {{/ifCond}}   
+
+        {{#ifCond user.userType 'Aspirante'}}
+            <h1>Ver cursos como interesado</h1>
+
+            <div id="accordion">
+                {{#each availableCourses}}
+                    <div class="card">
+                        <div class="card-header" id="heading{{this.courseId}}">
+                        <h5 class="mb-0">
+                            <a role="button" data-toggle="collapse" data-target="#collapse{{this.courseId}}" aria-expanded="{{#ifCond @index 0}}true{{else}}false{{/ifCond}}" aria-controls="collapse{{this.courseId}}">
+                                Nombre del curso: {{this.name}}, Costo: {{this.cost}}  » 
+                            </a>
+                        </h5>
+                        </div>
+
+                        <div id="collapse{{this.courseId}}" class="collapse {{#ifCond @index 0}}show{{else}} {{/ifCond}}" aria-labelledby="heading{{this.courseId}}" data-parent="#accordion">
+                            <div class="card-body">
+                                <p>Nombre: {{this.name}}</p>
+                                <p>Costo: {{this.cost}}</p>
+                                <p>Descripción: {{this.description}}</p>
+                                <p>Intensidad: {{this.hourlyIntensity}}</p>
+                                <p>Modalidad: {{this.modality}}</p>
+                                <p>Estado: {{this.status}}</p>
+
+                                <a class="btn btn-lg btn-primary" href="/enrollStudent/{{this.courseId}}/{{../user.identificationNumber}}" role="button">Inscribirse »</a>
+                            </div>
+                        </div>
                     </div>
-                    </div>
-                </div>
-            {{/each}}
-        </div>        
+                {{/each}}
+            </div>
+        {{/ifCond}}        
 
 {{>footer}} 
