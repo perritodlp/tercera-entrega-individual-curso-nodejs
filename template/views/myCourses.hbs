@@ -1,0 +1,47 @@
+{{>header}}
+
+    {{#if message}}
+        {{alertMessageHelper message}}
+    {{/if}}    
+
+    {{#if errors}}
+        <div id="error-group">{{errorsMessageHelper errors}}</div>
+    {{/if}}    
+
+    {{#if user}}
+        <h1>Ver mis cursos</h1>
+
+        <table class="table">
+            <thead class="thead-dark">
+                <tr>
+                    <th scope="col">Id</th>
+                    <th scope="col">Nombre</th>
+                    <th scope="col">Descripción</th>
+                    <th scope="col">Valor</th>
+                    <th scope="col">Modalidad</th>
+                    <th scope="col">Intensidad</th>
+                    <th scope="col">Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                {{#if myCourses}}
+                    {{#each myCourses}}
+                        <tr>
+                            <th scope="row">{{this.courseId}}</th>
+                            <td>{{this.name}}</td>
+                            <td>{{this.description}}</td>
+                            <td>{{this.cost}}</td>
+                            <td>{{this.modality}}</td>
+                            <td>{{this.hourlyIntensity}}</td>
+                            <td><a href="/deleteStudentFromCourse/{{../user.identificationNumber}}/{{this.courseId}}">Desuscribirse</a></td>
+                        </tr>                
+                    {{/each}}
+                {{/if}}                
+            </tbody>
+        </table>
+
+        <hr>
+    {{/if}}   
+
+{{>footer}} 

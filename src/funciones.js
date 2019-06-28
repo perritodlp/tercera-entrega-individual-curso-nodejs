@@ -458,6 +458,47 @@ const logout = (identificationNumber) => {
     return JSON.stringify(response);
 };
 
+const myCourses = (identificationNumber) => {
+    let message = '';
+    let error = false;  
+
+    let availableCourses = availableCoursesList();
+    enrolledStudentsList();
+
+    console.log(enrolledStudents.length);
+    console.log(identificationNumber);
+
+    // Buscamos si el estudiante ya se encuentra matriculado en un curso, usando el número de identificación y el identificador del curso
+    var results = [];
+    enrolledStudents.forEach(x => {
+        console.log(x.identificationNumber + ' : ' + identificationNumber);
+
+        if (x.identificationNumber == identificationNumber) {
+            console.log('founded ' + x.courseId);
+
+            let courseData = availableCourses.find(course => (course.courseId == x.courseId));
+            
+            results.push(courseData);
+        }    
+    });
+
+    console.log('Results: ');
+    console.log(results);
+
+    if( results.length == 0 ) {
+        message = 'El estudiante no se encuentra inscrito en ningún curso';
+        results = null;
+    }
+
+    let response = {
+        error: error,
+        message: message,
+        myCourses: results
+    };
+
+    return response;
+};
+
 module.exports = {
     saveCourse,
     coursesList,
@@ -473,5 +514,6 @@ module.exports = {
     loginUser,
     getUser,
     userSessionList,
-    logout
+    logout,
+    myCourses
 }

@@ -242,12 +242,18 @@ app.get('/deleteStudentFromCourse/:studentId/:courseId', (req, res) => {
     funciones.deleteStudentFromCourse(studentId, courseId).then((response) => {
         //console.log('3rd then, after calling deleteStudentFromCourse: ' + response);
 
-        res.render('viewEnrolled', {
-            response: response,
-            errors: err,
-            availableCourses: funciones.availableCoursesList(),
-            enrolledStudents: funciones.enrolledStudentsList()
-        });            
+        user = funciones.userSessionList()[0];
+
+        if(user.userType == "Coordinador") {
+            res.render('viewEnrolled', {
+                response: response,
+                errors: err,
+                availableCourses: funciones.availableCoursesList(),
+                enrolledStudents: funciones.enrolledStudentsList()
+            });            
+        } else {
+            res.redirect("myCourses/" + user.identificationNumber);
+        }
     });
 });
 
@@ -348,6 +354,23 @@ app.get('/logout/:identificationNumber', (req, res) => {
         res.render('index',{
             user: null
         });         
+    });
+});
+
+app.get('/myCourses/:identificationNumber', (req, res) => {
+    identificationNumber = req.params.identificationNumber;
+
+    let response = funciones.myCourses(identificationNumber);
+    console.log('Response: ');
+    console.log(response);
+
+    userSession = funciones.userSessionList()[0];
+
+    res.render('myCourses', {
+        user: userSession,
+        myCourses: response.myCourses,
+        message: response.message,
+        errors: response.error
     });
 });
 
