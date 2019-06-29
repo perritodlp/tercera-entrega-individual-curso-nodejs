@@ -1,5 +1,6 @@
 /*jshint esversion: 6 */
 
+const port = process.env.PORT || 3002;
 const express = require('express');
 const app = express();
 const {check, validationResult} = require('express-validator/check');
@@ -446,6 +447,6 @@ app.get('*', (req, res) => {
     res.render('error');
 });
 
-app.listen(3002, () => {
-    console.log('Escuchando el puerto 3002');
+app.listen(port, () => {
+    console.log('Escuchando el puerto ' + port);
 });
