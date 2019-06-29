@@ -1,7 +1,7 @@
 {{>header}}
 
-    {{#if message}}
-        {{alertMessageHelper message}}
+    {{#if response}}
+        {{alertMessageHelper response}}
     {{/if}}    
 
     {{#if errors}}
@@ -12,6 +12,7 @@
         <h1>Ver mis cursos</h1>
 
         <table class="table">
+            {{#if myCourses}}
             <thead class="thead-dark">
                 <tr>
                     <th scope="col">Id</th>
@@ -24,8 +25,6 @@
                 </tr>
             </thead>
             <tbody>
-
-                {{#if myCourses}}
                     {{#each myCourses}}
                         <tr>
                             <th scope="row">{{this.courseId}}</th>
@@ -37,8 +36,15 @@
                             <td><a href="/deleteStudentFromCourse/{{../user.identificationNumber}}/{{this.courseId}}">Desuscribirse</a></td>
                         </tr>                
                     {{/each}}
-                {{/if}}                
             </tbody>
+            {{else}}
+                <tbody>
+                    <tr>
+                        <td>{{message}}</td>
+                    </tr>
+                </tbody>
+            {{/if}} 
+
         </table>
 
         <hr>

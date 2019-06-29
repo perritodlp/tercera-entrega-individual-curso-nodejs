@@ -138,7 +138,8 @@ app.get('/enrollStudent/:courseId/:identificationNumber', [
                 errors: err,
                 availableCourses: availableCourses,
                 user: funciones.userSessionList()[0]
-            });            
+            });     
+            //res.redirect('/listCourses/' + response + '/' + err);        
         });
     }    
 });
@@ -237,6 +238,9 @@ app.get('/deleteStudentFromCourse/:studentId/:courseId', (req, res) => {
     studentId = req.params.studentId;
     courseId = req.params.courseId;  
 
+    console.log('StudentId: ' + studentId);
+    console.log('courseId: ' + courseId);
+
     let err = '';
 
     funciones.deleteStudentFromCourse(studentId, courseId).then((response) => {
@@ -252,7 +256,7 @@ app.get('/deleteStudentFromCourse/:studentId/:courseId', (req, res) => {
                 enrolledStudents: funciones.enrolledStudentsList()
             });            
         } else {
-            res.redirect("myCourses/" + user.identificationNumber);
+            res.redirect("/myCourses/" + user.identificationNumber);
         }
     });
 });
@@ -361,16 +365,17 @@ app.get('/myCourses/:identificationNumber', (req, res) => {
     identificationNumber = req.params.identificationNumber;
 
     let response = funciones.myCourses(identificationNumber);
-    console.log('Response: ');
-    console.log(response);
+    let myCourses = (JSON.parse(response).myCourses != null) ? JSON.parse(response).myCourses : response.myCourses;
+    let message =  JSON.parse(response).message;
+    let error = JSON.parse(response).error;
 
     userSession = funciones.userSessionList()[0];
 
     res.render('myCourses', {
         user: userSession,
-        myCourses: response.myCourses,
-        message: response.message,
-        errors: response.error
+        myCourses: myCourses,
+        message: JSON.stringify(message),
+        error: JSON.stringify(error)
     });
 });
 

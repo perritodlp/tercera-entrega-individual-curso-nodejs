@@ -224,7 +224,14 @@ const deleteStudentFromCourse = (studentId, courseId) => {
     let courseName = courseData.name;    
 
     // Buscamos si el estudiante ya se encuentra matriculado en un curso, usando el número de identificación y el identificador del curso y lo borramos   
-    enrolledStudents = enrolledStudents.filter(student => student.courseId != courseId && student.identificationNumber != studentId);
+    //enrolledStudents = enrolledStudents.filter(student => (student.courseId != courseId && student.identificationNumber == studentId) );
+
+    var filter = {
+        courseId: courseId,
+        identificationNumber: studentId
+    };
+
+    enrolledStudents = multFilter(enrolledStudents, filter);
 
     if(enrolledStudents){
 
@@ -465,25 +472,16 @@ const myCourses = (identificationNumber) => {
     let availableCourses = availableCoursesList();
     enrolledStudentsList();
 
-    console.log(enrolledStudents.length);
-    console.log(identificationNumber);
-
     // Buscamos si el estudiante ya se encuentra matriculado en un curso, usando el número de identificación y el identificador del curso
     var results = [];
     enrolledStudents.forEach(x => {
-        console.log(x.identificationNumber + ' : ' + identificationNumber);
-
         if (x.identificationNumber == identificationNumber) {
-            console.log('founded ' + x.courseId);
 
             let courseData = availableCourses.find(course => (course.courseId == x.courseId));
             
             results.push(courseData);
         }    
     });
-
-    console.log('Results: ');
-    console.log(results);
 
     if( results.length == 0 ) {
         message = 'El estudiante no se encuentra inscrito en ningún curso';
@@ -496,8 +494,21 @@ const myCourses = (identificationNumber) => {
         myCourses: results
     };
 
-    return response;
+    return JSON.stringify(response);
 };
+
+const multFilter = (data, filter) => {
+    const dataFiltered = data.filter(function(item) {
+        for (var key in filter) {
+            if (item[key] === undefined || item[key] != filter[key])
+            return true;
+        }
+
+        return false;
+    });
+
+    return dataFiltered;
+}
 
 module.exports = {
     saveCourse,
