@@ -2,6 +2,13 @@
 
 Se lleva a cabo la implementación de las cinco (8) historias de usuario asignadas y se verifica el cumplimiento de los criterios de aceptación.
 
+### :cloud: Probando la aplicación en Heroku
+
+```bash
+# Abrir en el navegador la aplicación
+https://curso-fundamentos-nodejs.herokuapp.com/
+```
+
 ### :cloud: Instalación
 
 
