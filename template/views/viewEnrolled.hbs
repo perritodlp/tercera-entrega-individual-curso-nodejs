@@ -29,6 +29,10 @@
                                 </thead>
                                 <tbody>
                                     {{enrolledStudentsByCourseHelper ../enrolledStudents availableCourse.courseId}}
+
+                                    <tr>
+                                        <td colspan="5" align="right"><a class="btn btn-lg btn-primary" href="/changeCourseState/{{availableCourse.courseId}}" role="button">Cerrar curso »</a></td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>

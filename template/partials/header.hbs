@@ -48,15 +48,20 @@
           <li class="nav-item">
             <a class="nav-link" href="/viewEnrolled">Ver inscritos</a>
           </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/usersAdmin">Administrar usuarios</a>
+          </li>          
             {{/ifCond}} 
           {{/if}}
           {{#if user}}         
           <li class="nav-item">
             <a class="nav-link" href="/listCourses">Ver cursos</a>
           </li>
+          {{#ifCond user.userType 'Aspirante'}}
           <li class="nav-item">
             <a class="nav-link" href="/myCourses/{{user.identificationNumber}}">Mis cursos</a>
-          </li>          
+          </li>  
+          {{/ifCond}}        
           {{/if}}
         </ul>
 

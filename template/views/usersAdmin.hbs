@@ -1,0 +1,61 @@
+{{>header}}
+
+    {{#if response}}
+        {{alertMessageHelper response}}
+    {{/if}}    
+
+    {{#if errors}}
+        <div id="error-group">{{errorsMessageHelper errors}}</div>
+    {{/if}}    
+
+    {{#if user}}
+        <h1>Ver y modificar usuarios como coordinador</h1>
+
+        <table class="table">
+            {{#if users}}
+            <thead class="thead-dark">
+                <tr>
+                    <th scope="col">Número de identificación</th>
+                    <th scope="col">Nombre</th>
+                    <th scope="col">E-mail</th>
+                    <th scope="col">Teléfono</th>
+                    <th scope="col">Tipo de usuario</th>
+                    <th scope="col">Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                    {{#each users}}
+                        <tr>
+                            <th scope="row">{{this.identificationNumber}}</th>
+                            <td>{{this.name}}</td>
+                            <td>{{this.email}}</td>
+                            <td>{{this.phone}}</td>
+                            <td>{{this.userType}}</td>
+                            <td>
+                                {{#ifCond this.userType 'Coordinador'}}
+                                    Coordinador
+                                {{/ifCond}}
+                                {{#ifCond this.userType 'Aspirante'}}
+                                    <a href="/changeUserType/{{this.identificationNumber}}/Docente">Cambio a docente</a>
+                                {{/ifCond}}
+                                {{#ifCond this.userType 'Docente'}}
+                                    <a href="/changeUserType/{{this.identificationNumber}}/Aspirante">Cambio a aspirante</a>
+                                {{/ifCond}}
+                            </td>
+                        </tr>                
+                    {{/each}}
+            </tbody>
+            {{else}}
+                <tbody>
+                    <tr>
+                        <td>{{message}}</td>
+                    </tr>
+                </tbody>
+            {{/if}} 
+
+        </table>
+
+        <hr>
+    {{/if}}   
+
+{{>footer}} 

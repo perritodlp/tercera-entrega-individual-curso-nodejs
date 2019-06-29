@@ -261,7 +261,7 @@ const deleteStudentFromCourse = (studentId, courseId) => {
 
 const usersList = () => {
     try {
-        //delete require.cache[require.resolve('./users.json')]
+        delete require.cache[require.resolve('./users.json')]
 
         users = require('./users.json');
     } catch(error) {
@@ -476,10 +476,10 @@ const myCourses = (identificationNumber) => {
     var results = [];
     enrolledStudents.forEach(x => {
         if (x.identificationNumber == identificationNumber) {
-
             let courseData = availableCourses.find(course => (course.courseId == x.courseId));
-            
-            results.push(courseData);
+
+            if( courseData != null || courseData != undefined)
+                results.push(courseData);
         }    
     });
 
@@ -510,6 +510,45 @@ const multFilter = (data, filter) => {
     return dataFiltered;
 }
 
+const changeUserType = (users, identificationNumber, newUserType) => {
+    let message = '';
+    let error = false;
+
+    if( users ) {
+        for (var i in users) {
+            if (users[i].identificationNumber == identificationNumber) {
+                users[i].userType = newUserType;
+                userName = users[i].name;
+                break; //Stop this loop, we found it!
+            }
+        }
+
+        return createUser(userName, 'actualizado a ' + newUserType + ' ').then((message) => {
+            console.log('1st then, inside createUser(): ' + message);
+
+            let response = {
+                error: error,
+                message: message,
+                redirect: 'usersAdmin'
+            };
+
+            return JSON.stringify(response);
+        });  
+
+    } else {
+        error = true;
+        message = 'Se produjo un error obteniendo la información de los usuarios';
+    }
+
+    let response = {
+        error: error,
+        message: message,
+        redirect: 'changeUserType'
+    };
+
+    return JSON.stringify(response);
+};
+
 module.exports = {
     saveCourse,
     coursesList,
@@ -526,5 +565,6 @@ module.exports = {
     getUser,
     userSessionList,
     logout,
-    myCourses
+    myCourses,
+    changeUserType
 }

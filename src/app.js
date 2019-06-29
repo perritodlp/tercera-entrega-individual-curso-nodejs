@@ -46,6 +46,8 @@ app.post('/saveCourse', [
 
     const errors = validationResult(req);
     let err = '';
+    userSession = funciones.userSessionList()[0];
+    availableCourses = funciones.availableCoursesList();
 
     if (!errors.isEmpty()) {
         err = JSON.stringify(errors.array());
@@ -53,7 +55,8 @@ app.post('/saveCourse', [
 
         res.render('createCourse', {
             response: response,
-            errors: err
+            errors: err,
+            user: userSession
         });         
     } else {
 
@@ -76,7 +79,8 @@ app.post('/saveCourse', [
                 response: response,
                 errors: err,
                 courses: courses,
-                availableCourses: availableCourses
+                availableCourses: availableCourses,
+                user: userSession
             });            
         });
     }
@@ -198,13 +202,12 @@ app.get('/viewEnrolled', (req, res) => {
     });
 });
 
-app.post('/changeCourseState', [
-    check('courseId').not().isEmpty().withMessage('Debe seleccionar un curso para actualizar'),
-  ],function (req, res) {
-    courseId = req.body.courseId;  
+const changeCourseStateHandler = (req, res) => {
+    courseId = (req.method === 'GET') ? req.params.courseId : req.body.courseId;  
 
     availableCourses = funciones.availableCoursesList();
     courses = funciones.coursesList();
+    userSession = funciones.userSessionList();
 
     const errors = validationResult(req);
     let err = '';
@@ -217,7 +220,8 @@ app.post('/changeCourseState', [
             response: response,
             errors: err,
             courses: courses,
-            availableCourses: availableCourses
+            availableCourses: availableCourses,
+            user: userSession
         });        
       
     } else {
@@ -228,11 +232,20 @@ app.post('/changeCourseState', [
                 response: response,
                 errors: err,
                 courses: courses,
-                availableCourses: availableCourses
+                availableCourses: availableCourses,
+                user: userSession
             });            
         });
     }    
-});
+};
+
+app.get('/changeCourseState/:courseId', [
+    check('courseId').not().isEmpty().withMessage('Debe seleccionar un curso para actualizar'),
+  ], changeCourseStateHandler );
+
+app.post('/changeCourseState', [
+    check('courseId').not().isEmpty().withMessage('Debe seleccionar un curso para actualizar'),
+  ], changeCourseStateHandler );  
 
 app.get('/deleteStudentFromCourse/:studentId/:courseId', (req, res) => {
     studentId = req.params.studentId;
@@ -377,6 +390,56 @@ app.get('/myCourses/:identificationNumber', (req, res) => {
         message: JSON.stringify(message),
         error: JSON.stringify(error)
     });
+});
+
+app.get('/usersAdmin', (req, res) => {
+    userSession = funciones.userSessionList()[0];
+    users = funciones.usersList();
+
+    res.render('usersAdmin', {
+        user: userSession,
+        users: users,
+        response: '',
+        errors: '',
+        message: ''
+    });
+});
+
+app.get('/changeUserType/:identificationNumber/:newUserType', [
+    check('identificationNumber').not().isEmpty().withMessage('Debe enviar el número de identificación del usuario a modificar'),
+  ], (req, res) => {
+    identificationNumber = req.params.identificationNumber; 
+    newUserType = req.params.newUserType; 
+
+    users = funciones.usersList();
+    userSession = funciones.userSessionList()[0];
+
+    const errors = validationResult(req);
+    let err = '';
+
+    if (!errors.isEmpty()) {
+        err = JSON.stringify(errors.array());
+        response = null;
+
+        res.render('usersAdmin', {
+            response: response,
+            errors: err,
+            user: userSession,
+            users: users
+        });        
+      
+    } else {
+        funciones.changeUserType(users, identificationNumber, newUserType).then((response) => {
+            console.log('3rd then, after calling changeUserType: ' + response);
+
+            res.render('usersAdmin', {
+                response: response,
+                errors: err,
+                user: userSession,
+                users: users
+            });            
+        });
+    }    
 });
 
 app.get('*', (req, res) => {
