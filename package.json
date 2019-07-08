@@ -1,10 +1,10 @@
 {
-  "name": "segunda-entrega-individual",
+  "name": "tercera-entrega-individual",
   "version": "1.0.0",
-  "description": "Segunda entrega individual curso Fundamentos de NodeJs",
+  "description": "Tercera entrega individual curso Fundamentos de NodeJs",
   "main": "src/app.js",
   "scripts": {
-    "start": "node src/app.js", 
+    "start": "node src/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Fernando Rengifo fernando.rengifo.ch@hotmail.com",
