@@ -3,6 +3,15 @@ const app = express();
 const {check, validationResult} = require('express-validator/check');
 const path = require("path");
 const hbs = require('hbs');
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+const session = require('express-session');
+
+// Models
+const User = require('./../models/users');
+const Course = require('./../models/courses');
+const studentCourse = require('./../models/studentCourses');
+
 const funciones = require('../funciones');
 require('../helpers/helpers');
 
@@ -14,8 +23,15 @@ hbs.registerPartials(directorypartials);
 app.set('views', directoryviews);
 app.set('view engine', 'hbs');
 
+app.use(session({
+  secret: 'Fz}*#hE4"fC,h4Sn*',
+  resave: true,
+  saveUninitialized: true,
+  cookie: { maxAge: 86400000 }
+}));
+
 app.get('/', (req, res) => {
-    const user = funciones.userSessionList()[0];
+    const user = funciones.userSession(req);
 
     res.render('index', {
         user: (user) ? user : null
@@ -24,7 +40,7 @@ app.get('/', (req, res) => {
 
 app.get('/createCourse', (req, res) => {
     res.render('createCourse',{
-        user: funciones.userSessionList()[0]
+        user: funciones.userSession(req)
     });
 });
 
@@ -37,7 +53,7 @@ app.post('/saveCourse', [
 
     const errors = validationResult(req);
     let err = '';
-    userSession = funciones.userSessionList()[0];
+    userSession = funciones.userSession(req);
     availableCourses = funciones.availableCoursesList();
 
     if (!errors.isEmpty()) {
@@ -65,28 +81,36 @@ app.post('/saveCourse', [
             //console.log('3rd then, after calling saveCourse: ' + response);
 
             let redirect = JSON.parse(response).redirect;
+            let error = JSON.parse(response).error;
 
-            res.render(redirect, {
-                response: response,
-                errors: err,
-                courses: courses,
-                availableCourses: availableCourses,
-                user: userSession
-            });            
+            if(error) {
+                res.render(redirect, {
+                    response: response,
+                    errors: err,
+                    //courses: courses,
+                    //availableCourses: availableCourses,
+                    user: userSession,
+                    req: req
+                });
+            } else {
+                 res.redirect(redirect);
+            }
         });
     }
 });
 
 app.get('/listCourses', (req, res) => {
-    courses = funciones.coursesList();
-    availableCourses = funciones.availableCoursesList();
-    userSession = funciones.userSessionList()[0];
+    userSession = funciones.userSession(req);
 
-    res.render('listCourses', {
-        courses: courses,
-        availableCourses: availableCourses,
-        user: userSession
-    });
+    funciones.coursesList().then( courses => {
+
+        res.render('listCourses', {
+            courses: courses,
+            user: userSession
+        });
+
+        return courses;
+    });    
 });
 
 app.get('/enroll', (req, res) => {
@@ -96,9 +120,9 @@ app.get('/enroll', (req, res) => {
     });
 });
 
-app.get('/enrollStudent/:courseId/:identificationNumber', [
+app.get('/enrollStudent/:courseId/:studentId', [
     check('courseId').not().isEmpty().withMessage('Debe ingresar el identificador del curso'),
-    check('identificationNumber').not().isEmpty().withMessage('Debe de ingresar el número de identificación').isDecimal().withMessage('El número de identificación debe ser numérico')
+    check('studentId').not().isEmpty().withMessage('Debe de ingresar el número de identificación').isDecimal().withMessage('El número de identificación debe ser numérico')
 ], function (req, res) {
     availableCourses = funciones.availableCoursesList();  
     const errors = validationResult(req);
@@ -132,7 +156,7 @@ app.get('/enrollStudent/:courseId/:identificationNumber', [
                 response: response,
                 errors: err,
                 availableCourses: availableCourses,
-                user: funciones.userSessionList()[0]
+                user: funciones.userSession(req)
             });     
             //res.redirect('/listCourses/' + response + '/' + err);        
         });
@@ -182,15 +206,22 @@ app.post('/enrollStudent', [
 });
 
 app.get('/viewEnrolled', (req, res) => {
-    availableCourses = funciones.availableCoursesList();
+    //availableCourses = funciones.availableCoursesList();
     enrolledStudents = funciones.enrolledStudentsList();
-    user = funciones.userSessionList()[0];
+    user = funciones.userSession(req);
     
-    res.render('viewEnrolled', {
-        availableCourses: availableCourses,
-        enrolledStudents: enrolledStudents,
-        user: user
-    });
+    funciones.coursesList("status","Disponible").then( availableCourses => {
+
+        res.render('viewEnrolled', {
+            availableCourses: availableCourses,
+            enrolledStudents: enrolledStudents,
+            user: user
+        });
+
+        return courses;
+    }); 
+    
+
 });
 
 const changeCourseStateHandler = (req, res) => {
@@ -250,7 +281,7 @@ app.get('/deleteStudentFromCourse/:studentId/:courseId', (req, res) => {
     funciones.deleteStudentFromCourse(studentId, courseId).then((response) => {
         //console.log('3rd then, after calling deleteStudentFromCourse: ' + response);
 
-        user = funciones.userSessionList()[0];
+        user = funciones.userSession(req);
 
         if(user.userType == "Coordinador") {
             res.render('viewEnrolled', {
@@ -274,6 +305,24 @@ app.post('/signup', [
     check('identificationNumber').not().isEmpty().withMessage('Debe ingresar el número de identificación'),
     check('phone').not().isEmpty().withMessage('Debe de ingresar el teléfono'),
     check('email').not().isEmpty().withMessage('Debe de ingresar correo electrónico'),
+    check('username').not().isEmpty().withMessage('Debe de ingresar un nombre de usuario'),
+    check('password').not().isEmpty().withMessage("La contraseña es requerida")
+        .isLength({min: 6}).withMessage("La contraseña debe tener al menos 6 caracteres")
+        .isLength({max: 20}).withMessage("La contraseña puede tener máximo 20 caracteres")
+        .custom((value, { req }) => {
+            if (value === req.body.confirmPassword) {
+                return true;
+            } else {
+                return false;
+            }
+        }).withMessage("Las contraseñas no coinciden"),        
+    check('username').custom(value => {
+        return funciones.findUser("username",value).then(user => {
+            if (user) {
+                return Promise.reject('El usuario ya se encuentra en uso');
+            }
+        });
+    })       
   ],function (req, res) {
 
     const errors = validationResult(req);
@@ -289,26 +338,35 @@ app.post('/signup', [
             req: req
         });         
     } else {
+        var salt = bcrypt.genSaltSync(saltRounds);
 
         let user = {
             identificationNumber: parseInt(req.body.identificationNumber),
             name: req.body.name,
             phone: req.body.phone, 
             email: req.body.email,
-            userType: req.body.userType 
+            userType: req.body.userType,
+            username: req.body.username,
+            password: bcrypt.hashSync(req.body.password, salt) 
         };
 
         funciones.saveUser(user).then((response) => {
             console.log('3rd then, after calling saveUser: ' + response);
 
-            let redirect = JSON.parse(response).redirect;
-
-            res.render(redirect, {
-                response: response,
-                errors: err,
-                courses: courses,
-                availableCourses: availableCourses
-            });            
+            redirect = JSON.parse(response).redirect;
+            error = JSON.parse(response).error;
+            
+            if( error ) {
+                res.render(redirect, {
+                    response: response,
+                    errors: err,
+                    courses: courses,
+                    availableCourses: availableCourses,
+                    req: req
+                });
+            } else {
+                res.redirect(redirect);
+            }
         });
     }
 });
@@ -318,7 +376,7 @@ app.get('/login', (req, res) => {
 });
 
 app.post('/login', [
-    check('username').not().isEmpty().withMessage('Debe ingresar el número de identificación como nombre de usuario'),
+    check('username').not().isEmpty().withMessage('Debe ingresar el nombre de usuario'),
     check('password').not().isEmpty().withMessage('Debe de ingresar la contraseña'),
   ],function (req, res) {
 
@@ -336,33 +394,24 @@ app.post('/login', [
         });         
     } else {
 
-        funciones.loginUser(req.body.username, req.body.password).then((response) => {
+        funciones.loginUser(req).then((response) => {
             console.log('3rd then, after calling loginUser: ' + response);
 
             let redirect = JSON.parse(response).redirect;
-            let err = JSON.parse(response).error;
 
-            res.render(redirect, {
-                response: response.message,
-                errors: err,
-                courses: funciones.coursesList(),
-                availableCourses: funciones.availableCoursesList(),
-                user: JSON.parse(response).user
-            });
+            res.redirect(redirect);
         });
     }
 });
 
-app.get('/logout/:identificationNumber', (req, res) => {
-    identificationNumber = req.params.identificationNumber;
+app.get('/logout', (req, res) => {
 
-    funciones.logout(identificationNumber).then((response) => {
-        console.log('3rd then, after calling logout: ' + response);
+	req.session.destroy((err) => {
+  		if (err) 
+          return console.log(err) 	
+	})	
 
-        res.render('index',{
-            user: null
-        });         
-    });
+	res.redirect('/')    
 });
 
 app.get('/myCourses/:identificationNumber', (req, res) => {
@@ -373,7 +422,7 @@ app.get('/myCourses/:identificationNumber', (req, res) => {
     let message =  JSON.parse(response).message;
     let error = JSON.parse(response).error;
 
-    userSession = funciones.userSessionList()[0];
+    userSession = funciones.userSession(req);
 
     res.render('myCourses', {
         user: userSession,
@@ -384,7 +433,7 @@ app.get('/myCourses/:identificationNumber', (req, res) => {
 });
 
 app.get('/usersAdmin', (req, res) => {
-    userSession = funciones.userSessionList()[0];
+    userSession = funciones.userSession(req);
     users = funciones.usersList();
 
     res.render('usersAdmin', {
@@ -403,7 +452,7 @@ app.get('/changeUserType/:identificationNumber/:newUserType', [
     newUserType = req.params.newUserType; 
 
     users = funciones.usersList();
-    userSession = funciones.userSessionList()[0];
+    userSession = funciones.userSession(req);
 
     const errors = validationResult(req);
     let err = '';

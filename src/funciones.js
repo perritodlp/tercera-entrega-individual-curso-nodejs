@@ -1,13 +1,19 @@
 /*jshint esversion: 6 */
 
-const fs = require('fs');
+// Models
+const User = require('./models/users');
+const Course = require('./models/courses');
+const studentCourse = require('./models/studentCourses');
 
-courses = [];
+const fs = require('fs');
+const bcrypt = require('bcrypt');
+
+//courses = [];
 availableCourses = [];
 enrolledStudents = [];
 enrolledStudentsByCourse = [];
 users = [];
-userSession = [];
+//const userSession = "";
 
 const DEFAULT_USER_TYPE = 'Aspirante';
 
@@ -15,8 +21,8 @@ const saveCourse = async (course) => {
     let message;
     let error = false;  
 
-    coursesList();
-    availableCoursesList();
+    //coursesList();
+    //availableCoursesList();
     let cur = {
         courseId: course.courseId,
         name: course.name,
@@ -27,13 +33,13 @@ const saveCourse = async (course) => {
         status: course.status
     };
 
-    let duplicado = courses.find(id => id.courseId == course.courseId);
+    let duplicado = await findCourse("courseId", course.courseId);
 
     if(!duplicado){
-        courses.push(cur);
+        //courses.push(cur);
 
-        return createCourse(course.name).then((message) => {
-            //console.log('1st then, inside saveCourse(): ' + message);
+        return createCourse(cur).then((message) => {
+            console.log('1st then, inside saveCourse(): ' + message);
 
             let response = {
                 error: error,
@@ -58,25 +64,45 @@ const saveCourse = async (course) => {
     return JSON.stringify(response);
 };
 
-const coursesList = () => {
-    try {
-        courses = require('./courses.json');
-    } catch(error) {
-        courses = [];
+const findCourse = async function (key, value) { 
+    try { 
+        var query = {};
+        if( value !== "" ) {
+            query[key] = value;
+        } 
+                
+        return await Course.findOne(query);
+    } catch(err) { 
+        console.log(err) 
     }
-
-    return courses;
 };
 
-const createCourse = (name, action = 'creado') => {
-    let data = JSON.stringify(courses);
+const coursesList = async () => {
+    try { 
+        return await Course.find({});
+    } catch(err) { 
+        console.log(err) 
+    }
+};
+
+const createCourse = (course, action = 'creado') => {
+
+    let cur = new Course({
+        courseId: course.courseId,
+        name: course.name,
+        description: course.description,
+        hourlyIntensity: course.hourlyIntensity,
+        cost: course.cost,
+        modality: course.modality,
+        status: course.status
+    });
 
     return new Promise(function(resolve, reject) {
-        fs.writeFile('./src/courses.json', data, (err) => {
+        cur.save((err, response) => {
             if( err ) reject(err);
-            resolve("Curso de " + name + " " + action + " con éxito");
+            resolve("Curso de " + course.name + " " + action + " con éxito");
         });
-    });    
+    });
 };
 
 const enrolledStudentsList = () => {
@@ -92,17 +118,21 @@ const enrolledStudentsList = () => {
 };
 
 const availableCoursesList = () => {
-    let availableCourses = [];
+    //let availableCourses = [];
 
     try {
-        courses = coursesList();
-        courses.forEach(course => {
+        availableCourses = coursesList("status","Disponible").then(availableCourses => {
+            console.log('Cursos disponibles: ' + availableCourses);
+            
+            return availableCourses;
+        });
+        /* courses.forEach(course => {
             if( course.status == 'Disponible') {
                 availableCourses.push(course); 
             }
-        });
+        }); */
     } catch(error) {
-        availableCourses = [];
+        availableCourses = null;
     }
     
     return availableCourses;
@@ -116,10 +146,7 @@ const enrollStudent = async (student) => {
     enrolledStudentsList();
     let enrollStudent = {
         courseId: student.courseId,
-        name: student.name,
-        identificationNumber: student.identificationNumber,
-        email: student.email,
-        phone: student.phone,
+        studentId: student.studentId
     };
 
     // Buscamos si el estudiante ya se encuentra matriculado en un curso, usando el número de identificación y el identificador del curso
@@ -271,43 +298,54 @@ const usersList = () => {
     return users;
 };
 
-const createUser = (userName, action = 'creado') => {
-    let data = JSON.stringify(users);
+const createUser = (user, action = 'creado') => {
+
+    let usr = new User({
+        name: user.name,
+        email: user.email,
+        identificationNumber: user.identificationNumber,
+        phone: user.phone,
+        userType: DEFAULT_USER_TYPE,
+        username: user.username,
+        password: user.password
+    });    
 
     return new Promise(function(resolve, reject) {
-        fs.writeFile('./src/users.json', data, (err) => {
+        usr.save((err, response) => {
             if( err ) reject(err);
-            resolve("El usuario " + userName + " " + action + " con éxito");
+            resolve("El usuario " + user.username + " " + action + " con éxito");
         });
     });    
+};
+
+const findUser = async (key, value) => { 
+    try { 
+        var query = {};
+        if( value !== "" ) {
+            query[key] = value;
+        } 
+                
+        return await User.findOne(query);
+    } catch(err) { 
+        console.log(err) 
+    }
 };
 
 const saveUser = async (user) => {
     let message;
     let error = false;  
 
-    usersList();
-
-    let usr = {
-        name: user.name,
-        email: user.email,
-        identificationNumber: user.identificationNumber,
-        phone: user.phone,
-        userType: DEFAULT_USER_TYPE
-    };
-
-    let duplicado = users.find(id => id.identificationNumber == user.identificationNumber);
+    let duplicado = await findUser("identificationNumber", user.identificationNumber);
 
     if(!duplicado){
-        users.push(usr);
 
-        return createUser(user.identificationNumber).then((message) => {
+        return createUser(user).then((message) => {
             console.log('1st then, inside saveUser(): ' + message);
 
             let response = {
                 error: error,
                 message: message,
-                redirect: 'listCourses'
+                redirect: 'login'
             };
 
             return JSON.stringify(response);
@@ -327,52 +365,64 @@ const saveUser = async (user) => {
     return JSON.stringify(response);
 };
 
-const userSessionList = () => {
+const userSession = (req) => {
     try {
-        delete require.cache[require.resolve('./userSession.json')]
-
-        userSession = require('./userSession.json');
+        user = req.session.user;
     } catch(error) {
-        userSession = [];
+        if(error) 
+            console.log('Error: ' + error);
+            
+        user = null;
     }
 
-    return userSession;
+    return user;
 };
 
 /*
 *
 *
 */
-const createSession = (user, name, action = 'creada') => {
-    let data = JSON.stringify(user);
+const createSession = (req, user, action = 'creada') => {
 
     return new Promise(function(resolve, reject) {
-        fs.writeFile('./src/userSession.json', data, (err) => {
-            if( err ) reject(err);
-            resolve("Sesión de " + name + " " + action + " con éxito");
+        req.session.user = user;
+        
+        req.session.save(function(err) {
+            if (err) {
+                console.log('Error saving session to store', err);
+                reject(err);
+            }
+            resolve ("Sesión de " + user.name + " " + action + " con éxito"); 
         });
-    });    
+    });        
 };
 
-const loginUser = (userName, password) => {
-    let message;
+const loginUser = async (req) => {
+    let message = '';
     let error = false;  
     let redirect = '';
     let userData;
 
-    usersList();
-
-    let userExists = users.find(user => (user.identificationNumber == userName && user.identificationNumber == password));
+    let userExists = await findUser("username", req.body.username);
 
     if(userExists){
         redirect = 'listCourses';
         userData = userExists;
 
-        userSessionList();
+        let passwordMatch = bcrypt.compareSync(req.body.password, userExists.password);
 
-        userSession.push(userData);
+        if(!passwordMatch) {
+            let response = {
+                error: true,
+                message: 'La contraseña no es correcta',
+                redirect: 'login',
+                user: null
+            };
 
-        return createSession(userSession, userData.name).then((message) => {
+            return JSON.stringify(response);            
+        }
+
+        return createSession(req, userData).then((message) => {
             console.log('1st then, inside createSession(): ' + message);
 
             let response = {
@@ -387,9 +437,9 @@ const loginUser = (userName, password) => {
 
     } else {
         error = true;
-        message = 'El usuario no existe o contraseña incorrecta';
+        message = 'Usuario no encontrado';
         redirect = 'login';
-        userData = null;
+        userData = null
     }
 
     let response = {
@@ -427,42 +477,6 @@ const getUser = (identificationNumber) => {
     };
 
     return response;
-};
-
-const logout = (identificationNumber) => {
-    let message = '';
-    let error = false;  
-
-    userSessionList();
-
-    let userExists = userSession.find(user => (user.identificationNumber == identificationNumber));
-
-    // Buscamos si el usuario estaba en sesión, usando el número de identificación y lo borramos   
-    logoutUser = userSession.filter(user => (user.identificationNumber != identificationNumber));
-
-    if(logoutUser){
-        return createSession(logoutUser, userExists.name, 'cerrada').then((message) => {
-            console.log('1st then, inside logout(): ' + message);
-
-            let response = {
-                error: error,
-                message: message
-            };
-
-            return JSON.stringify(response);
-        });        
-
-    } else {
-        error = true;
-        message = 'Error cerrando sesión del usuario ' + logoutUser.name;
-    }
-
-    let response = {
-        error: error,
-        message: message
-    };
-
-    return JSON.stringify(response);
 };
 
 const myCourses = (identificationNumber) => {
@@ -563,8 +577,9 @@ module.exports = {
     saveUser,
     loginUser,
     getUser,
-    userSessionList,
-    logout,
+    userSession,
     myCourses,
-    changeUserType
+    changeUserType,
+    findUser,
+    findCourse
 }

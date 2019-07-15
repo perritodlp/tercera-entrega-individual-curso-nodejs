@@ -6,7 +6,7 @@
 
         {{#if errors}}
             <div id="error-group">{{errorsMessageHelper errors}}</div>
-        {{/if}}    
+        {{/if}}   
 
         {{#ifCond user.userType 'Coordinador'}}
             <h1>Ver cursos como administrador</h1>
@@ -49,8 +49,10 @@
                         <label for="courseId">Cursos disponibles</label>
                         <select class="form-control" name="courseId" id="courseId">
                             <option value="">Seleccione un curso</option>
-                            {{#each availableCourses}}
-                                <option value="{{this.courseId}}">{{this.name}}</option>
+                            {{#each courses}}
+                                {{#ifCond this.status 'Disponible'}}
+                                    <option value="{{this.courseId}}">{{this.name}}</option>
+                                {{/ifCond}}    
                             {{/each}} 
                         </select>
                     </div>
@@ -66,29 +68,31 @@
             <h1>Ver cursos como interesado</h1>
 
             <div id="accordion">
-                {{#each availableCourses}}
-                    <div class="card">
-                        <div class="card-header" id="heading{{this.courseId}}">
-                        <h5 class="mb-0">
-                            <a role="button" data-toggle="collapse" data-target="#collapse{{this.courseId}}" aria-expanded="{{#ifCond @index 0}}true{{else}}false{{/ifCond}}" aria-controls="collapse{{this.courseId}}">
-                                Nombre del curso: {{this.name}}, Costo: {{this.cost}}  » 
-                            </a>
-                        </h5>
-                        </div>
+                {{#each courses}}
+                    {{#ifCond this.status 'Disponible'}}
+                        <div class="card">
+                            <div class="card-header" id="heading{{this.courseId}}">
+                            <h5 class="mb-0">
+                                <a role="button" data-toggle="collapse" data-target="#collapse{{this.courseId}}" aria-expanded="{{#ifCond @index 0}}true{{else}}false{{/ifCond}}" aria-controls="collapse{{this.courseId}}">
+                                    Nombre del curso: {{this.name}}, Costo: {{this.cost}}  » 
+                                </a>
+                            </h5>
+                            </div>
 
-                        <div id="collapse{{this.courseId}}" class="collapse {{#ifCond @index 0}}show{{else}} {{/ifCond}}" aria-labelledby="heading{{this.courseId}}" data-parent="#accordion">
-                            <div class="card-body">
-                                <p>Nombre: {{this.name}}</p>
-                                <p>Costo: {{this.cost}}</p>
-                                <p>Descripción: {{this.description}}</p>
-                                <p>Intensidad: {{this.hourlyIntensity}}</p>
-                                <p>Modalidad: {{this.modality}}</p>
-                                <p>Estado: {{this.status}}</p>
+                            <div id="collapse{{this.courseId}}" class="collapse {{#ifCond @index 0}}show{{else}} {{/ifCond}}" aria-labelledby="heading{{this.courseId}}" data-parent="#accordion">
+                                <div class="card-body">
+                                    <p>Nombre: {{this.name}}</p>
+                                    <p>Costo: {{this.cost}}</p>
+                                    <p>Descripción: {{this.description}}</p>
+                                    <p>Intensidad: {{this.hourlyIntensity}}</p>
+                                    <p>Modalidad: {{this.modality}}</p>
+                                    <p>Estado: {{this.status}}</p>
 
-                                <a class="btn btn-lg btn-primary" href="/enrollStudent/{{this.courseId}}/{{../user.identificationNumber}}" role="button">Inscribirse »</a>
+                                    <a class="btn btn-lg btn-primary" href="/enrollStudent/{{this.courseId}}/{{../user._id}}" role="button">Inscribirse »</a>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    {{/ifCond}}
                 {{/each}}
             </div>
         {{/ifCond}}        
